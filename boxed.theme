@@ -31,6 +31,11 @@ _box() {
     local name="$1"
     name_len=${#name}
     # printf "$name\n"
+    if _lp_create_link "https://liquidprompt.readthedocs.io/en/stable/theme/default.html#LP_${name}" "$name" ; then
+        name_link="$lp_link"
+    else
+        name_link="$name"
+    fi
 
     local what="$2"
     __lp_strip_escapes "$what"
@@ -45,43 +50,55 @@ _box() {
         box_mid+="${color}│${NO_COL}$what"
         box_bot+="┴"
 
-        # Fill in missing spaces, using box_mid as reference.
         __lp_strip_escapes "$box_mid"
-        local mid="$ret"
-        for (( i=${#box_hyp}; i < ${#mid}-raw_data_len; i++ )) ; do
+        local raw_mid="$ret"
+
+        # Fill in missing spaces, using box_mid as reference.
+        __lp_strip_escapes "$box_hyp"
+        local raw_hyp="$ret"
+        for (( i=${#raw_hyp}; i < ${#raw_mid}-raw_data_len; i++ )) ; do
             box_hyp+=" "
         done
-        # printf "${#box_sup} -> ${#mid}\n"
-        for (( i=${#box_sup}; i < ${#mid}-raw_data_len; i++ )) ; do
+        # printf "${#box_sup} -> ${#raw_mid}\n"
+        __lp_strip_escapes "$box_sup"
+        local raw_sup="$ret"
+        for (( i=${#raw_sup}; i < ${#raw_mid}-raw_data_len; i++ )) ; do
             box_sup+=" "
         done
+        __lp_strip_escapes "$box_top"
+        local raw_top="$ret"
 
         # Add names.
         if (( name_len > raw_data_len )); then
             # printf "On sup/hyp line\n"
-            local btlen=${#box_top}
-            local cursor="${box_sup:btlen:1}"
-            # printf "${btlen}«${cursor}»\n"
+            local top_len=${#raw_top}
+            local cursor="${raw_sup:top_len:1}"
+            # printf "$raw_top\n"
+            # printf "${top_len}«${cursor}»\n"
 
             if [[ "$cursor" != " " && "$cursor" != "" ]] ; then
                 # printf "On hyp line\n"
-                box_hyp+="┌$name"
+                box_hyp+="┌$name_link"
                 box_top+="┴"
             else
                 # printf "On sup line\n"
-                box_sup+="┌$name"
+                box_sup+="┌$name_link"
                 box_top+="┴"
             fi
         else
             # printf "On top line\n"
-            box_top+="$name"
+            box_top+="$name_link"
         fi
 
         # Fill in missing spaces, using box_mid as reference.
-        for (( i=${#box_top}; i < ${#mid}; i++ )) ; do
+        __lp_strip_escapes "$box_top"
+        local raw_top="$ret"
+        for (( i=${#raw_top}; i < ${#raw_mid}; i++ )) ; do
             box_top+="─"
         done
-        for (( i=${#box_bot}; i < ${#mid}; i++ )) ; do
+        __lp_strip_escapes "$box_bot"
+        local raw_bot="$ret"
+        for (( i=${#raw_bot}; i < ${#raw_mid}; i++ )) ; do
             box_bot+="─"
         done
 
@@ -117,40 +134,40 @@ _lp_boxed_theme_prompt_template() {
         boxed_color="$lp_terminal_format"
 
         # Add title escape time, battery, load, temperature, RAM, disk, wifi, jobs.
-        _box "ps1_prefix" "${LP_PS1_PREFIX}" "$boxed_color"
-        _box "time" "${LP_TIME}" "$boxed_color"
-        _box "batt" "${LP_BATT}" "$boxed_color"
-        _box "load" "${LP_LOAD}" "$boxed_color"
-        _box "temp" "${LP_TEMP}" "$boxed_color"
-        _box "ram" "${LP_RAM}" "$boxed_color"
-        _box "disk" "${LP_DISK}" "$boxed_color"
-        _box "wifi" "${LP_WIFI}" "$boxed_color"
-        _box "jobs" "${LP_JOBS}" "$boxed_color"
+        _box "PS1_PREFIX" "${LP_PS1_PREFIX}" "$boxed_color"
+        _box "TIME" "${LP_TIME}" "$boxed_color"
+        _box "BATT" "${LP_BATT}" "$boxed_color"
+        _box "LOAD" "${LP_LOAD}" "$boxed_color"
+        _box "TEMP" "${LP_TEMP}" "$boxed_color"
+        _box "RAM" "${LP_RAM}" "$boxed_color"
+        _box "DISK" "${LP_DISK}" "$boxed_color"
+        _box "WIFI" "${LP_WIFI}" "$boxed_color"
+        _box "JOBS" "${LP_JOBS}" "$boxed_color"
 
         # Add multiplexer brackets, user, host, permissions colon, working directory, dirstack, proxy, watched environment variables and nested shell level.
 
-        # _box "multiplexer" "${BOXED_MULTIPLEXER}" "$boxed_color"
-        _box "bracket_open" "${LP_BRACKET_OPEN}" "$boxed_color"
-        _box "user" "${LP_USER}" "$boxed_color"
-        _box "host" "${LP_HOST}" "$boxed_color"
-        _box "perm" "${LP_PERM}" "$boxed_color"
-        _box "pwd" "${LP_PWD}" "$boxed_color"
-        _box "dirstack" "${LP_DIRSTACK}" "$boxed_color"
-        _box "bracket_close" "${LP_BRACKET_CLOSE}" "$boxed_color"
-        _box "proxy" "${LP_PROXY}" "$boxed_color"
-        _box "envvars" "${LP_ENVVARS}" "$boxed_color"
-        _box "shlvl" "${LP_SHLVL}" "$boxed_color"
+        # _box "MULTIPLEXER" "${BOXED_MULTIPLEXER}" "$boxed_color"
+        _box "BRACKET_OPEN" "${LP_BRACKET_OPEN}" "$boxed_color"
+        _box "USER" "${LP_USER}" "$boxed_color"
+        _box "HOST" "${LP_HOST}" "$boxed_color"
+        _box "PERM" "${LP_PERM}" "$boxed_color"
+        _box "PWD" "${LP_PWD}" "$boxed_color"
+        _box "DIRSTACK" "${LP_DIRSTACK}" "$boxed_color"
+        _box "BRACKET_CLOSE" "${LP_BRACKET_CLOSE}" "$boxed_color"
+        _box "PROXY" "${LP_PROXY}" "$boxed_color"
+        _box "ENVVARS" "${LP_ENVVARS}" "$boxed_color"
+        _box "SHLVL" "${LP_SHLVL}" "$boxed_color"
 
         # Add the list of development environments/config/etc.
-        _box "dev_env" "${LP_DEV_ENV}" "$boxed_color"
+        _box "DEV_ENV" "${LP_DEV_ENV}" "$boxed_color"
         # Add VCS infos
         # If root, the info has not been collected unless LP_ENABLE_VCS_ROOT
         # is set.
-        _box "vcs" "${LP_VCS}" "$boxed_color"
+        _box "VCS" "${LP_VCS}" "$boxed_color"
         # Add last runtime, return code & meaning, prompt mark and user-defined postfix.
-        _box "runtime" "${LP_RUNTIME}" "$boxed_color"
-        _box "err" "${LP_ERR}" "$boxed_color"
-        _box "err_meaning" "${LP_ERR_MEANING}" "$boxed_color"
+        _box "RUNTIME" "${LP_RUNTIME}" "$boxed_color"
+        _box "ERR" "${LP_ERR}" "$boxed_color"
+        _box "ERR_MEANING" "${LP_ERR_MEANING}" "$boxed_color"
 
         box_hyp+=" "
         box_sup+=" "
