@@ -31,10 +31,10 @@ _box() {
     local name="$1"
     name_len=${#name}
     # printf "$name\n"
-    if _lp_create_link "https://liquidprompt.readthedocs.io/en/stable/theme/default.html#LP_${name}" "$name" ; then
+    if _lp_create_link "https://liquidprompt.readthedocs.io/en/stable/theme/default.html#LP_${name}" "${name,,}" ; then
         name_link="$lp_link"
     else
-        name_link="$name"
+        name_link="${name,,}"
     fi
 
     local what="$2"
