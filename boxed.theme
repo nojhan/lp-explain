@@ -1,0 +1,209 @@
+
+_lp_boxed_theme_activate() {
+    LP_MARK_DEV_OPEN=
+    LP_MARK_DEV_CLOSE=
+    _lp_default_theme_activate
+}
+
+_lp_boxed_theme_directory() {
+    _lp_default_theme_directory
+}
+
+_lp_boxed_theme_prompt() {
+    _lp_default_theme_prompt_data
+    _lp_boxed_theme_prompt_template
+}
+
+_box() {
+    local name="$1"
+    name_len=${#name}
+
+    local what="$2"
+    __lp_strip_escapes "$what"
+    local raw_data="$ret"
+    local raw_data_len=${#raw_data}
+
+    box_top=""
+    box_mid=""
+    box_bot=""
+    if [[ -n "$what" ]]; then
+        local i
+        box_top="┬"
+
+        if (( name_len > raw_data_len )); then
+            name="${name:0:raw_data_len}"
+        fi
+        box_top+="$name"
+        for (( i=0; i < raw_data_len-name_len; i++ )) ; do
+            box_top+="─"
+        done
+
+        box_mid="│$what"
+
+        box_bot="┴"
+        for (( i=0; i < raw_data_len; i++ )) ; do
+            box_bot+="─"
+        done
+    fi
+}
+
+
+_lp_boxed_theme_prompt_template() {
+    if [[ -f "${LP_PS1_FILE-}" ]]; then
+        # shellcheck source=liquid.ps1
+        source "$LP_PS1_FILE"
+    fi
+
+    if [[ -z "${LP_PS1-}" ]]; then
+        top=""
+        mid=""
+        bot=""
+
+        # Add title escape time, battery, load, temperature, RAM, disk, wifi, jobs.
+        _box "ps1_prefix" "${LP_PS1_PREFIX}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "time" "${LP_TIME}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "batt" "${LP_BATT}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "load" "${LP_LOAD}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "temp" "${LP_TEMP}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "ram" "${LP_RAM}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "disk" "${LP_DISK}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "wifi" "${LP_WIFI}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "jobs" "${LP_JOBS}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+
+        # Add multiplexer brackets, user, host, permissions colon, working directory, dirstack, proxy, watched environment variables and nested shell level.
+        _box "bracket_open" "${LP_BRACKET_OPEN}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "bracket_close" "${LP_BRACKET_CLOSE}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "user" "${LP_USER}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "host" "${LP_HOST}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "perm" "${LP_PERM}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "pwd" "${LP_PWD}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "dirstack" "${LP_DIRSTACK}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "proxy" "${LP_PROXY}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "envvars" "${LP_ENVVARS}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "shlvl" "${LP_SHLVL}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+
+        # Add the list of development environments/config/etc.
+        _box "dev_env" "${LP_DEV_ENV}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        # Add VCS infos
+        # If root, the info has not been collected unless LP_ENABLE_VCS_ROOT
+        # is set.
+        _box "vcs" "${LP_VCS}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        # Add last runtime, return code & meaning, prompt mark and user-defined postfix.
+        _box "runtime" "${LP_RUNTIME}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "err" "${LP_ERR}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "err_meaning" "${LP_ERR_MEANING}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "mark_prefix" "${LP_MARK_PREFIX}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        _box "color_mark" "${LP_COLOR_MARK}"
+        top+="$box_top"
+        mid+="$box_mid"
+        bot+="$box_bot"
+
+        PS1="$top\n$mid\n$bot\n${LP_MARK}${LP_PS1_POSTFIX}"
+
+        # Get the core sections without prompt escapes and make them into a title.
+        _lp_formatted_title "${LP_PS1_PREFIX}${LP_BRACKET_OPEN}${LP_USER}${LP_HOST}${LP_MARK_PERM}${lp_path-}${LP_BRACKET_CLOSE}${LP_MARK_PREFIX}${LP_MARK}${LP_PS1_POSTFIX}"
+    else
+        PS1=$LP_PS1
+    fi
+}
+
