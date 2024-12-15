@@ -41,52 +41,46 @@ _box() {
 
     if [[ -n "$what" ]]; then
         local i
-        box_hyp+=" "
-        box_sup+=" "
         box_top+="┬"
         box_mid+="${color}│${NO_COL}$what"
         box_bot+="┴"
 
+        # Fill in missing spaces, using box_mid as reference.
+        __lp_strip_escapes "$box_mid"
+        local mid="$ret"
+        for (( i=${#box_hyp}; i < ${#mid}-raw_data_len; i++ )) ; do
+            box_hyp+=" "
+        done
+        # printf "${#box_sup} -> ${#mid}\n"
+        for (( i=${#box_sup}; i < ${#mid}-raw_data_len; i++ )) ; do
+            box_sup+=" "
+        done
+
+        # Add names.
         if (( name_len > raw_data_len )); then
-    #         printf "On sup/hyp line\n"
+            # printf "On sup/hyp line\n"
             local btlen=${#box_top}
             local cursor="${box_sup:btlen:1}"
-    #         printf "${btlen}«${cursor}»\n"
-
-            # Fill in hyp if it's missing spaces.
-            if (( ${#box_hyp} < ${#box_top} )) ; then
-                for (( i=${#box_hyp}; i < ${#box_top}; i++ )) ; do
-                    box_hyp+=" "
-                done
-            fi
+            # printf "${btlen}«${cursor}»\n"
 
             if [[ "$cursor" != " " && "$cursor" != "" ]] ; then
-    #             printf "On hyp line\n"
+                # printf "On hyp line\n"
                 box_hyp+="┌$name"
                 box_top+="┴"
             else
-    #             printf "On sup line\n"
+                # printf "On sup line\n"
                 box_sup+="┌$name"
                 box_top+="┴"
             fi
         else
-    #         printf "On top line\n"
+            # printf "On top line\n"
             box_top+="$name"
         fi
 
         # Fill in missing spaces, using box_mid as reference.
-        __lp_strip_escapes "$box_mid"
-        local mid="$ret"
-        for (( i=${#box_hyp}; i < ${#mid}; i++ )) ; do
-            box_hyp+=" "
-        done
-        for (( i=${#box_sup}; i < ${#mid}; i++ )) ; do
-            box_sup+=" "
-        done
         for (( i=${#box_top}; i < ${#mid}; i++ )) ; do
             box_top+="─"
         done
-    #     printf "${#box_bot}->${#mid}"
         for (( i=${#box_bot}; i < ${#mid}; i++ )) ; do
             box_bot+="─"
         done
@@ -164,7 +158,14 @@ _lp_boxed_theme_prompt_template() {
         box_mid+="${boxed_color}│${NO_COL}"
         box_bot+="┘"
 
-        PS1="${boxed_color}${box_hyp}\n${box_sup}\n${box_top}${NO_COL}\n${box_mid}\n${boxed_color}${box_bot}${NO_COL}\n${LP_MARK_PREFIX}${LP_MARK}${LP_PS1_POSTFIX}"
+        PS1="${boxed_color}"
+        if [[ -n ${box_hyp// } ]] ; then # If not just spaces.
+            PS1+="${box_hyp}\n"
+        fi
+        if [[ -n ${box_sup// } ]] ; then
+            PS1+="${box_sup}\n"
+        fi
+        PS1+="${box_top}${NO_COL}\n${box_mid}\n${boxed_color}${box_bot}${NO_COL}\n${LP_MARK_PREFIX}${LP_MARK}${LP_PS1_POSTFIX}"
 
         # Get the core sections without prompt escapes and make them into a title.
         _lp_formatted_title "${LP_PS1_PREFIX}${LP_BRACKET_OPEN}${LP_USER}${LP_HOST}${LP_MARK_PERM}${lp_path-}${LP_BRACKET_CLOSE}${LP_MARK_PREFIX}${LP_MARK}${LP_PS1_POSTFIX}"
