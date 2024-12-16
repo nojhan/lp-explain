@@ -1,5 +1,6 @@
 
-_lp_boxed_theme_activate() {
+_lp_explain_theme_activate() {
+    # Disable tyographic marks without meaning.
     LP_MARK_DEV_OPEN=
     LP_MARK_DEV_CLOSE=
     LP_MARK_DEV_MID=
@@ -10,25 +11,32 @@ _lp_boxed_theme_activate() {
     LP_MARK_ENV_VARS_SEP=
     LP_MARK_ENV_VARS_CLOSE=
 
-    # BOXED_MULTIPLEXER=
-    # if _lp_multiplexer ; then
-    #     BOXED_MULTIPLEXER="$lp_multiplexer"
-    # fi
+    # A prompt starting on the third line looks weird,
+    # so we duplicate the mark and put it on a new line.
+    LP_MARK_PREFIX=${LP_MARK_PREFIX:-$'\n'}
+
+    # Light gray as a default.
+    lp_terminal_format 239 -1
+    LP_COLOR_EXPLAIN=${LP_COLOR_EXPLAIN:-"$lp_terminal_format"}
 
     _lp_default_theme_activate
 }
 
-_lp_boxed_theme_directory() {
+_lp_explain_theme_directory() {
     _lp_default_theme_directory
 }
 
-_lp_boxed_theme_prompt() {
+_lp_explain_theme_prompt() {
     _lp_default_theme_prompt_data
-    _lp_boxed_theme_prompt_template
+    _lp_explain_theme_prompt_template
 }
 
-_box() {
-    local name="$1"
+
+# Add a boxed section of the prompt, along with the corresponding variable name.
+# Interpret "name" as an LP_* variable, and show lowercase names.
+# E.G. `_box PWD` will show the content of $LP_PWD under the name "pwd".
+_box() { # name [color]
+    local name="${1-}"
     name_len=${#name}
     # printf "$name\n"
     if _lp_create_link "https://liquidprompt.readthedocs.io/en/stable/theme/default.html#LP_${name}" "${name,,}" ; then
@@ -37,12 +45,24 @@ _box() {
         name_link="${name,,}"
     fi
 
-    local what="$2"
+    # Get LP_ variable from name.
+    local varname="LP_${name}"
+    local var=${!varname} # Get indirection.
+    # Trim spaces from content,
+    # since they are useless here
+    # (added by the default theme,
+    # that uses them as separators).
+    shopt -s extglob
+    local what="${var##+([[:space:]])}"
+    what="${what%%+([[:space:]])}"
+
+    # Get length from text without color/link escapes.
     __lp_strip_escapes "$what"
     local raw_data="$ret"
     local raw_data_len=${#raw_data}
 
-    local color="$3"
+    # If no color, use global var.
+    local color="${2:-$LP_COLOR_EXPLAIN}"
 
     if [[ -n "$what" ]]; then
         local i
@@ -117,72 +137,78 @@ _box() {
 }
 
 
-_lp_boxed_theme_prompt_template() {
+_lp_explain_theme_prompt_template() {
     if [[ -f "${LP_PS1_FILE-}" ]]; then
         # shellcheck source=liquid.ps1
         source "$LP_PS1_FILE"
     fi
 
     if [[ -z "${LP_PS1-}" ]]; then
+        # Initial global variables.
         box_hyp=""
         box_sup=""
         box_top=""
         box_mid=""
         box_bot=""
 
-        lp_terminal_format 243
-        boxed_color="$lp_terminal_format"
-
         # Add title escape time, battery, load, temperature, RAM, disk, wifi, jobs.
-        _box "PS1_PREFIX" "${LP_PS1_PREFIX}" "$boxed_color"
-        _box "TIME" "${LP_TIME}" "$boxed_color"
-        _box "BATT" "${LP_BATT}" "$boxed_color"
-        _box "LOAD" "${LP_LOAD}" "$boxed_color"
-        _box "TEMP" "${LP_TEMP}" "$boxed_color"
-        _box "RAM" "${LP_RAM}" "$boxed_color"
-        _box "DISK" "${LP_DISK}" "$boxed_color"
-        _box "WIFI" "${LP_WIFI}" "$boxed_color"
-        _box "JOBS" "${LP_JOBS}" "$boxed_color"
+        _box PS1_PREFIX
+        _box TIME
+        _box BATT
+        _box LOAD
+        _box TEMP
+        _box RAM
+        _box DISK
+        _box WIFI
+        _box JOBS
 
         # Add multiplexer brackets, user, host, permissions colon, working directory, dirstack, proxy, watched environment variables and nested shell level.
 
-        # _box "MULTIPLEXER" "${BOXED_MULTIPLEXER}" "$boxed_color"
-        _box "BRACKET_OPEN" "${LP_BRACKET_OPEN}" "$boxed_color"
-        _box "USER" "${LP_USER}" "$boxed_color"
-        _box "HOST" "${LP_HOST}" "$boxed_color"
-        _box "PERM" "${LP_PERM}" "$boxed_color"
-        _box "PWD" "${LP_PWD}" "$boxed_color"
-        _box "DIRSTACK" "${LP_DIRSTACK}" "$boxed_color"
-        _box "BRACKET_CLOSE" "${LP_BRACKET_CLOSE}" "$boxed_color"
-        _box "PROXY" "${LP_PROXY}" "$boxed_color"
-        _box "ENVVARS" "${LP_ENVVARS}" "$boxed_color"
-        _box "SHLVL" "${LP_SHLVL}" "$boxed_color"
+        _box BRACKET_OPEN
+        _box USER
+        _box HOST
+        _box PERM
+        _box PWD
+        _box DIRSTACK
+        _box BRACKET_CLOSE
+        _box PROXY
+        _box ENVVARS
+        _box SHLVL
 
         # Add the list of development environments/config/etc.
-        _box "DEV_ENV" "${LP_DEV_ENV}" "$boxed_color"
+        _box DEV_ENV
         # Add VCS infos
         # If root, the info has not been collected unless LP_ENABLE_VCS_ROOT
         # is set.
-        _box "VCS" "${LP_VCS}" "$boxed_color"
+        _box VCS
         # Add last runtime, return code & meaning, prompt mark and user-defined postfix.
-        _box "RUNTIME" "${LP_RUNTIME}" "$boxed_color"
-        _box "ERR" "${LP_ERR}" "$boxed_color"
-        _box "ERR_MEANING" "${LP_ERR_MEANING}" "$boxed_color"
+        _box RUNTIME
+        _box ERR
+        _box ERR_MEANING
 
+        # prefix/mark/suffix will be shown twice.
+        _box MARK_PREFIX
+        _box MARK
+        _box PS1_POSTFIX
+
+        # End last segment with an arrow shape.
         box_hyp+=" "
         box_sup+=" "
-        box_top+="┐"
-        box_mid+="${boxed_color}│${NO_COL}"
-        box_bot+="┘"
+        box_top+="🮢"
+        box_mid+="${LP_COLOR_EXPLAIN}🮥${NO_COL}"
+        box_bot+="🮠"
 
-        PS1="${boxed_color}"
+        # Show hyp/sup lines only if needed.
+        PS1="${LP_COLOR_EXPLAIN}"
         if [[ -n ${box_hyp// } ]] ; then # If not just spaces.
             PS1+="${box_hyp}\n"
         fi
         if [[ -n ${box_sup// } ]] ; then
             PS1+="${box_sup}\n"
         fi
-        PS1+="${box_top}${NO_COL}\n${box_mid}\n${boxed_color}${box_bot}${NO_COL}\n${LP_MARK_PREFIX}${LP_MARK}${LP_PS1_POSTFIX}"
+
+        # Assemble, and add mark+prompt on a new line.
+        PS1+="${box_top}${NO_COL}\n${box_mid}\n${LP_COLOR_EXPLAIN}${box_bot}${NO_COL}${LP_MARK_PREFIX}${LP_MARK}${LP_PS1_POSTFIX}"
 
         # Get the core sections without prompt escapes and make them into a title.
         _lp_formatted_title "${LP_PS1_PREFIX}${LP_BRACKET_OPEN}${LP_USER}${LP_HOST}${LP_MARK_PERM}${lp_path-}${LP_BRACKET_CLOSE}${LP_MARK_PREFIX}${LP_MARK}${LP_PS1_POSTFIX}"
