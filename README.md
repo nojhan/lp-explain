@@ -1,3 +1,13 @@
+# THIS REPOSITORY HAS MOVED
+
+It is now available at: https://nojhan.net/git/nojhan/lp-explain
+
+You can federate with it from Codeberg or another Forgejo instance.
+
+Please consider self-hosting to preserve the open Web, I highly recommend: https://yunohost.org
+
+
+
 # Explain — A Liquid Prompt Theme
 
 *Explain* is a theme for [Liquid Prompt](https://github.com/nojhan/liquidprompt).
